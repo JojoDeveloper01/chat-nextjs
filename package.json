@@ -1,0 +1,49 @@
+{
+  "name": "pixl-chat1",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "dev:socket": "nodemon --exec ts-node --project tsconfig.server.json server.ts",
+    "dev:socket1": "NODE_OPTIONS='--loader ts-node/esm --trace-warnings --no-warnings' ts-node server.ts",
+    "dev:socket11": "NODE_OPTIONS='--loader ts-node/esm --trace-warnings --no-warnings --turbopack' ts-node server.mts",
+    "build": "next build",
+    "build:socket": "next build && tsc --project tsconfig.server.json",
+    "start": "next start",
+    "start:socket": "NODE_ENV=production node dist/server.mjs",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "@types/cookie": "^1.0.0",
+    "@types/js-cookie": "^3.0.6",
+    "bcryptjs": "^3.0.2",
+    "cookie": "^1.0.2",
+    "cross-env": "^7.0.3",
+    "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
+    "next": "15.3.1",
+    "nodemon": "^3.1.9",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "ts-node": "^10.9.2",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^3.0.0",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.14.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.1",
+    "prisma": "^6.6.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  }
+}

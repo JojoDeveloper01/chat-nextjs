@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0F172A;
+  --foreground: #E2E8F0;
+  --primary: #4F46E5;
+  --primary-dark: #070a0f;
+  --primary-light: #202c45;
+  --secondary: #1E293B;
+  --secondary-dark: #0F172A;
+  --secondary-light: #334155;
+  --accent: #8B5CF6;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  --border: #1E293B;
+  --border-light: #334155;
+  --error: #DC2626;
+  --success: #059669;
+  --message-own: #4F46E5;
+  --message-other: #1E293B;
+  --hover: #334155;
+}
+
+body {
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+/* Customizações específicas */
+.chat-input {
+  background: var(--secondary);
+  border-color: var(--border);
+}
+
+.chat-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+.message-bubble-own {
+  background: var(--message-own);
+  color: var(--text-primary);
+}
+
+.message-bubble-other {
+  background: var(--message-other);
+  border: 1px solid var(--border-light);
+}
+
+.sidebar-item:hover {
+  background: var(--hover);
+}
+
+.active-chat {
+  background: var(--secondary-light);
+  border-left: 3px solid var(--primary);
+}
+
+/* Scrollbar customização */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}

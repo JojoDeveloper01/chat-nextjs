@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relacionamentos
+  sentChats     Chat[]    @relation("UserToChat")
+  receivedChats Chat[]    @relation("ReceiverToChat")
+
+  messages Message[]
+}
+
+model Chat {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relacionamentos
+  userId        String
+  user          User      @relation("UserToChat", fields: [userId], references: [id], onDelete: Cascade)
+  receiverId    String
+  receiver      User      @relation("ReceiverToChat", fields: [receiverId], references: [id], onDelete: Cascade)
+  messages      Message[]
+
+  // Controles de visibilidade
+  deletedForUser      Boolean   @default(false)
+  deletedForReceiver  Boolean   @default(false)
+
+  @@unique([userId, receiverId])
+}
+
+model Message {
+  id            String    @id @default(cuid())
+  content       String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relacionamentos
+  chatId        String
+  chat          Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  senderId      String
+  sender    User     @relation(fields: [senderId], references: [id])
+  
+  // Flags para edição e exclusão
+  isEdited      Boolean   @default(false)
+  deletedForSender    Boolean   @default(false)
+  deletedForReceiver  Boolean   @default(false)
+}
