@@ -4,12 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "nodemon --exec ts-node --project tsconfig.server.json server.ts",
-    "dev:socket1": "NODE_OPTIONS='--loader ts-node/esm --trace-warnings --no-warnings' ts-node server.ts",
-    "dev:socket11": "NODE_OPTIONS='--loader ts-node/esm --trace-warnings --no-warnings --turbopack' ts-node server.mts",
-    "build": "next build",
-    "build:socket": "next build && tsc --project tsconfig.server.json",
-    "start": "next start",
-    "start:socket": "NODE_ENV=production node dist/server.mjs",
+    "build": "next build && tsc --project tsconfig.server.json",
+    "start": "NODE_ENV=production node dist/server.js",
     "lint": "next lint"
   },
   "dependencies": {

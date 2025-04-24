@@ -373,6 +373,7 @@ const ChatPage: React.FC = () => {
                         <ChatHeader
                             receiver={receiver}
                             onDeleteChat={handleDeleteChat}
+                            showDeleteButton={!showUsers}
                         />
 
                         <MessageArea

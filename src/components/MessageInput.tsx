@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+
 type MessageInputProps = {
     input: string;
     setInput: React.Dispatch<React.SetStateAction<string>>;
@@ -5,10 +7,17 @@ type MessageInputProps = {
 };
 
 const MessageInput: React.FC<MessageInputProps> = ({ input, setInput, handleSendMessage }) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        inputRef.current?.focus();
+    }, []);
+
     return (
         <div className="p-2">
             <div className="flex gap-2">
                 <input
+                    ref={inputRef}
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}

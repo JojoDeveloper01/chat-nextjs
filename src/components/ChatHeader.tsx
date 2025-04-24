@@ -4,9 +4,10 @@ interface ChatHeaderProps {
         email?: string;
     } | null;
     onDeleteChat: () => void;
+    showDeleteButton?: boolean; // Nova prop
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ receiver, onDeleteChat }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ receiver, onDeleteChat, showDeleteButton = true }) => {
     return (
         <div className="px-4 py-[.6rem] border-b border-gray-500 flex items-center justify-between">
             <div className="flex items-center">
@@ -15,12 +16,14 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ receiver, onDeleteChat }) => {
                 </div>
                 <h2 className="font-medium">{receiver?.name || receiver?.email}</h2>
             </div>
-            <button
-                onClick={onDeleteChat}
-                className="text-[#ff6367] hover:underline"
-            >
-                Delete Chat
-            </button>
+            {showDeleteButton && (
+                <button
+                    onClick={onDeleteChat}
+                    className="text-[#ff6367] hover:underline"
+                >
+                    Delete Chat
+                </button>
+            )}
         </div>
     );
 };
