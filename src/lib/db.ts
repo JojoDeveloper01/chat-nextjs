@@ -110,13 +110,17 @@ export const db = {
 
     chats: {
         findById: async (chatId: string) => {
-            return prisma.chat.findFirst({
+            // Remove a condição deletedForUser: false para permitir encontrar o chat mesmo que deletado
+            return prisma.chat.findUnique({
                 where: {
-                    id: chatId,
-                    deletedForUser: false
+                    id: chatId
                 },
                 include: {
-                    messages: true,
+                    messages: {
+                        orderBy: {
+                            createdAt: 'asc'
+                        }
+                    },
                     user: {
                         select: {
                             id: true,
@@ -139,6 +143,69 @@ export const db = {
             return prisma.chat.update({
                 where: { id: chatId },
                 data: { deletedForUser: true }
+            });
+        },
+
+        findOrCreate: async (userId: string, receiverId: string) => {
+            const existingChat = await prisma.chat.findFirst({
+                where: {
+                    OR: [
+                        { AND: [{ userId }, { receiverId }] },
+                        { AND: [{ userId: receiverId }, { receiverId: userId }] }
+                    ]
+                },
+                include: {
+                    messages: {
+                        orderBy: { createdAt: 'asc' }
+                    },
+                    user: {
+                        select: { id: true, name: true, email: true }
+                    },
+                    receiver: {
+                        select: { id: true, name: true, email: true }
+                    }
+                }
+            });
+
+            if (existingChat) {
+                // Se encontrar, reativa o chat para ambos os usuários
+                return prisma.chat.update({
+                    where: { id: existingChat.id },
+                    data: {
+                        deletedForUser: false,
+                        deletedForReceiver: false,
+                    },
+                    include: {
+                        messages: {
+                            orderBy: { createdAt: 'asc' }
+                        },
+                        user: {
+                            select: { id: true, name: true, email: true }
+                        },
+                        receiver: {
+                            select: { id: true, name: true, email: true }
+                        }
+                    }
+                });
+            }
+
+            // Se não encontrar, cria um novo chat
+            return prisma.chat.create({
+                data: {
+                    userId,
+                    receiverId,
+                    deletedForUser: false,
+                    deletedForReceiver: false,
+                },
+                include: {
+                    messages: true,
+                    user: {
+                        select: { id: true, name: true, email: true }
+                    },
+                    receiver: {
+                        select: { id: true, name: true, email: true }
+                    }
+                }
             });
         }
     }

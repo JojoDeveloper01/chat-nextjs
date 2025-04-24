@@ -67,25 +67,40 @@ app.prepare().then(() => {
 
         socket.on("send_message", async (data) => {
             try {
-                const { chatId, content, receiverId } = data;
+                const { content, receiverId } = data;
+                const userId = socket.data.userId;
 
-                // Criar mensagem no banco de dados
+                // 1. Encontra ou cria o chat (garantindo que seja único)
+                const chat = await db.chats.findOrCreate(userId, receiverId);
+
+                // 2. Cria a mensagem
                 const message = await db.messages.create({
                     content,
-                    chatId,
+                    chatId: chat.id,
                     senderId: userId
                 });
 
-                console.log('Message created:', message);
+                // 3. Busca o chat atualizado
+                const updatedChat = await db.chats.findById(chat.id);
 
-                // Emitir para o remetente
-                socket.emit('receive_message', message);
+                if (!updatedChat) {
+                    throw new Error('Failed to fetch updated chat');
+                }
 
-                // Emitir para o destinatário usando seu ID como sala
-                io.to(receiverId).emit('receive_message', message);
+                // 4. Emite o evento com o chat atualizado
+                const eventData = {
+                    message,
+                    chat: updatedChat
+                };
+
+                // Emite para o remetente
+                socket.emit('receive_message', eventData);
+
+                // Emite para o destinatário
+                io.to(receiverId).emit('receive_message', eventData);
 
             } catch (error) {
-                console.error('Error creating message:', error);
+                console.error('Error sending message:', error);
                 socket.emit('error', { message: 'Failed to send message' });
             }
         });
@@ -94,10 +109,31 @@ app.prepare().then(() => {
             try {
                 const { messageId, chatId } = data;
                 const userId = socket.data.userId;
-                await db.messages.softDelete(messageId, userId);
 
-                // Emitir apenas para quem deletou
-                socket.emit('message_deleted', { messageId });
+                // Busca a mensagem atualizada com o chat
+                const deletedMessage = await db.messages.softDelete(messageId, userId);
+
+                if (!deletedMessage) {
+                    throw new Error('Failed to delete message');
+                }
+
+                // Busca o chat para obter o ID do outro participante
+                const chat = await db.chats.findById(chatId);
+                if (chat) {
+                    const receiverId = chat.userId === userId ? chat.receiverId : chat.userId;
+
+                    // Emite para quem deletou
+                    socket.emit('message_deleted', {
+                        messageId,
+                        isSender: deletedMessage.senderId === userId
+                    });
+
+                    // Emite para o outro participante (não deleta pra ele)
+                    io.to(receiverId).emit('message_deleted', {
+                        messageId,
+                        isSender: deletedMessage.senderId === receiverId
+                    });
+                }
             } catch (error) {
                 console.error('Error deleting message:', error);
             }

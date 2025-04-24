@@ -64,40 +64,27 @@ const ChatPage: React.FC = () => {
     useEffect(() => {
         if (!socket || !user) return;
 
-        socket.on('receive_message', (message) => {
+        // Listener para mensagens recebidas
+        socket.on('receive_message', async ({ message, chat }) => {
             setOptimisticMessages(prev =>
                 prev.filter(m => m.content !== message.content)
             );
 
-            setLocalChats(prevChats => {
-                // Verifica se o chat já existe na lista
-                const chatExists = prevChats.some(chat => chat.id === message.chatId);
-                const updatedChats = chatExists
-                    ? prevChats.map(chat => {
-                        if (chat.id === message.chatId) {
-                            return {
-                                ...chat,
-                                messages: [...chat.messages, message],
-                                updatedAt: new Date()
-                            };
-                        }
-                        return chat;
-                    })
-                    : [...prevChats, activeChat!]; // Adiciona o chat se for a primeira mensagem
+            setLocalChats(prev => {
+                const chatExists = prev.some(c => c.id === chat.id);
 
-                return updatedChats.sort((a, b) =>
-                    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-                );
+                if (chatExists) {
+                    // Atualiza o chat existente com todas as mensagens do chat atualizado
+                    return prev.map(c => c.id === chat.id ? chat : c);
+                } else {
+                    // Adiciona o novo chat
+                    return [chat, ...prev];
+                }
             });
 
-            if (activeChat?.id === message.chatId) {
-                setActiveChat(prev => ({
-                    ...prev!,
-                    messages: [...prev!.messages, message],
-                    updatedAt: new Date()
-                }));
-
-                messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+            // Se for o chat ativo, atualiza com todas as mensagens
+            if (activeChat?.id === chat.id) {
+                setActiveChat(chat);
             }
         });
 
@@ -215,6 +202,19 @@ const ChatPage: React.FC = () => {
             deletedForReceiver: false
         };
 
+        // Atualiza localmente antes do servidor
+        setLocalChats(prev => {
+            return prev.map(chat => {
+                if (chat.id === activeChat.id) {
+                    return {
+                        ...chat,
+                        messages: [...chat.messages, optimisticMessage]
+                    };
+                }
+                return chat;
+            });
+        });
+
         setOptimisticMessages(prev => [...prev, optimisticMessage]);
 
         setTimeout(() => {
@@ -268,6 +268,25 @@ const ChatPage: React.FC = () => {
 
     const handleStartChat = async (otherUser: User) => {
         try {
+            // Limpa as mensagens otimistas ao mudar de chat
+            setOptimisticMessages([]);
+
+            const existingChat = localChats.find(chat =>
+                (chat.userId === otherUser.id && chat.receiverId === user?.id) ||
+                (chat.userId === user?.id && chat.receiverId === otherUser.id)
+            );
+
+            if (existingChat) {
+                // Encontra o chat mais atualizado em localChats
+                const updatedChat = localChats.find(c => c.id === existingChat.id);
+                if (updatedChat) {
+                    setActiveChat(updatedChat);
+                } else {
+                    setActiveChat(existingChat);
+                }
+                return;
+            }
+
             const response = await fetch('/api/chats', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -278,16 +297,14 @@ const ChatPage: React.FC = () => {
 
             const chat = await response.json();
 
-            // Só adiciona à lista de chats se houver mensagens
-            if (chat.messages && chat.messages.length > 0) {
-                setLocalChats(prevChats => {
-                    const chatExists = prevChats.some(c => c.id === chat.id);
-                    if (!chatExists) {
-                        return [...prevChats, chat];
-                    }
-                    return prevChats.map(c => c.id === chat.id ? chat : c);
-                });
-            }
+            setLocalChats(prevChats => {
+                // Remove chats duplicados antes de adicionar o novo
+                const uniqueChats = prevChats.filter(c =>
+                    !(c.userId === chat.userId && c.receiverId === chat.receiverId) &&
+                    !(c.userId === chat.receiverId && c.receiverId === chat.userId)
+                );
+                return [chat, ...uniqueChats];
+            });
 
             setActiveChat(chat);
         } catch (error) {
@@ -331,7 +348,7 @@ const ChatPage: React.FC = () => {
     return (
         <div className="flex h-screen ">
             {/* Sidebar */}
-            <div className="w-1/4 border-r border-border text-text-primary">
+            <aside className="w-1/4 border-r border-border text-text-primary">
                 {/* Tabs */}
                 <div className="flex border-b border-border">
                     <button
@@ -364,7 +381,23 @@ const ChatPage: React.FC = () => {
                         onChatSelect={setActiveChat}
                     />
                 )}
-            </div>
+
+                <div className="absolute bottom-0 w-1/4 border-t border-r border-border p-4 bg-[#141a27]">
+                    <div className="flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-medium">
+                            {user?.name?.[0] || user?.email?.[0]}
+                        </div>
+                        <div className="ml-3 overflow-hidden">
+                            <p className="font-medium truncate text-text-primary">
+                                {user?.name || 'User'}
+                            </p>
+                            <p className="text-sm truncate text-text-secondary">
+                                {user?.email || ''}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
 
             {/* Main Content */}
             <div className="flex flex-col flex-1 bg-[#141a27]">

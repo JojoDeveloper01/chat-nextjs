@@ -5,7 +5,7 @@ export async function GET() {
     try {
         const user = await getCurrentUser();
 
-        console.log('User:', user);
+        //console.log('User:', user);
 
         if (!user) {
             return NextResponse.json(
