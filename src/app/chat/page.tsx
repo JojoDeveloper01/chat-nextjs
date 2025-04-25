@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useSocket } from '@/app/hooks/useSocket';
 import { useChatStore } from '@/store/chatStore';
 import { Message, Chat, User } from '@/store/chatStore';
@@ -21,7 +21,7 @@ const ChatPage: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const socket = useSocket(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000');
-    const { user, setUserConnection, removeUserConnection } = useChatStore();
+    const { user, setUserConnection } = useChatStore();
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -35,7 +35,7 @@ const ChatPage: React.FC = () => {
                 }
 
                 setIsLoading(false);
-            } catch (error) {
+            } catch {
                 window.location.href = '/login';
             }
         };
@@ -318,20 +318,23 @@ const ChatPage: React.FC = () => {
             : activeChat.user
         : null;
 
-    const allMessages = activeChat
-        ? [...activeChat.messages, ...optimisticMessages]
-            .filter((message, index, self) =>
-                index === self.findIndex(m => m.id === message.id)
-            )
-            .sort((a, b) =>
-                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-            )
-            .filter(message => {
-                const isOwn = message.senderId === user?.id;
-                return !(isOwn && message.deletedForSender) &&
-                    !(!isOwn && message.deletedForReceiver);
-            })
-        : [];
+    const allMessages = useMemo(() =>
+        activeChat
+            ? [...activeChat.messages, ...optimisticMessages]
+                .filter((message, index, self) =>
+                    index === self.findIndex(m => m.id === message.id)
+                )
+                .sort((a, b) =>
+                    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+                )
+                .filter(message => {
+                    const isOwn = message.senderId === user?.id;
+                    return !(isOwn && message.deletedForSender) &&
+                        !(!isOwn && message.deletedForReceiver);
+                })
+            : [],
+        [activeChat, optimisticMessages, user?.id]
+    );
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

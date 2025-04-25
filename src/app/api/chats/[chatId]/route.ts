@@ -1,14 +1,16 @@
 import { db } from '@/lib/db';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
+import { ApiError } from '@/types/errors';
+
 
 export async function GET(
-    request: Request,
-    { params }: { params: { chatId: string } }
+    request: NextRequest,
+    context: any
 ) {
     try {
         const user = await requireAuth();
-        const chat = await db.chats.findById(params.chatId);
+        const chat = await db.chats.findById(context.params.chatId);
 
         if (!chat) {
             return NextResponse.json(
@@ -26,10 +28,11 @@ export async function GET(
         }
 
         return NextResponse.json(chat);
-    } catch (error) {
-        console.error('Error fetching chat:', error);
+    } catch (error: unknown) {
+        const apiError = error as ApiError;
+        console.error('Error fetching chat:', apiError);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: apiError.message || 'Internal server error' },
             { status: 500 }
         );
     }

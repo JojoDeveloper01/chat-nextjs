@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
+import { ApiError } from '@/types/errors';
 
 export async function GET() {
     try {
         const user = await getCurrentUser();
-
-        //console.log('User:', user);
 
         if (!user) {
             return NextResponse.json(
@@ -15,9 +14,10 @@ export async function GET() {
         }
 
         return NextResponse.json(user, { status: 200 });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const apiError = error as ApiError;
         return NextResponse.json(
-            { message: error.message || 'Erro ao obter User' },
+            { message: apiError.message || 'Erro ao obter User' },
             { status: 500 }
         );
     }

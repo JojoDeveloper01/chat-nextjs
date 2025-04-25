@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
 import { loginUser } from '@/lib/auth';
+import { ApiError } from '@/types/errors';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         const { email, password } = await request.json();
 
@@ -20,9 +21,10 @@ export async function POST(request: Request) {
             { message: 'Login realizado com sucesso', user },
             { status: 200 }
         );
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const apiError = error as ApiError;
         return NextResponse.json(
-            { message: error.message || 'Credenciais inválidas' },
+            { message: apiError.message || 'Credenciais inválidas' },
             { status: 401 }
         );
     }

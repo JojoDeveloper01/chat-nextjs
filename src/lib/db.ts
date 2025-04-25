@@ -1,114 +1,31 @@
 import { prisma } from './prisma';
 
 export const db = {
-    messages: {
-        create: async ({ content, chatId, senderId }: {
-            content: string;
-            chatId: string;
-            senderId: string;
-        }) => {
-            return prisma.message.create({
-                data: {
-                    content,
-                    chatId,
-                    senderId,
-                    isEdited: false,
-                    deletedForSender: false,
-                    deletedForReceiver: false
-                },
-                include: {
-                    sender: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true
-                        }
-                    }
-                }
-            });
-        },
-
-        update: async ({ messageId, content }: {
-            messageId: string;
-            content: string;
-        }) => {
-            return prisma.message.update({
-                where: { id: messageId },
-                data: {
-                    content,
-                    isEdited: true
-                },
-                include: {
-                    sender: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true
-                        }
-                    }
-                }
-            });
-        },
-
-        delete: async (messageId: string) => {
-            return prisma.message.update({
-                where: { id: messageId },
-                data: { deletedForSender: true }
-            });
-        },
-
-        findUnique: async (messageId: string) => {
-            return prisma.message.findUnique({
-                where: { id: messageId },
-                include: {
-                    sender: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true
-                        }
-                    },
-                    chat: {
-                        select: {
-                            id: true,
-                            userId: true,
-                            receiverId: true
-                        }
-                    }
-                }
-            });
-        },
-
-        softDelete: async (messageId: string, userId: string) => {
-            const message = await prisma.message.findUnique({
-                where: { id: messageId },
-                include: {
-                    chat: true
-                }
-            });
-
-            if (!message) return null;
-
-            return prisma.message.update({
-                where: { id: messageId },
-                data: {
-                    deletedForSender: message.senderId === userId,
-                    deletedForReceiver: message.chat.receiverId === userId
-                },
-                include: {
-                    sender: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true
-                        }
-                    }
-                }
-            });
-        }
-    },
-
     chats: {
+        findAll: async (userId: string) => {
+            return prisma.chat.findMany({
+                where: {
+                    OR: [
+                        { userId },
+                        { receiverId: userId }
+                    ],
+                    deletedForUser: false
+                },
+                include: {
+                    messages: true,
+                    user: {
+                        select: { id: true, name: true, email: true }
+                    },
+                    receiver: {
+                        select: { id: true, name: true, email: true }
+                    }
+                },
+                orderBy: {
+                    updatedAt: 'desc'
+                }
+            });
+        },
+
         findById: async (chatId: string) => {
             // Remove a condição deletedForUser: false para permitir encontrar o chat mesmo que deletado
             return prisma.chat.findUnique({
@@ -205,6 +122,119 @@ export const db = {
                     receiver: {
                         select: { id: true, name: true, email: true }
                     }
+                }
+            });
+        }
+    },
+
+    messages: {
+        create: async ({ content, chatId, senderId }: {
+            content: string;
+            chatId: string;
+            senderId: string;
+        }) => {
+            return prisma.message.create({
+                data: {
+                    content,
+                    chatId,
+                    senderId,
+                    deletedForSender: false,
+                    deletedForReceiver: false
+                },
+                include: {
+                    sender: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true
+                        }
+                    }
+                }
+            });
+        },
+
+        update: async ({ messageId, content }: {
+            messageId: string;
+            content: string;
+        }) => {
+            return prisma.message.update({
+                where: { id: messageId },
+                data: { content },
+                include: {
+                    sender: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true
+                        }
+                    }
+                }
+            });
+        },
+
+        softDelete: async (messageId: string, userId: string) => {
+            const message = await prisma.message.findUnique({
+                where: { id: messageId }
+            });
+
+            if (!message) {
+                throw new Error('Message not found');
+            }
+
+            // Se o usuário é o remetente, marca como deletado para ele
+            const isSender = message.senderId === userId;
+            return prisma.message.update({
+                where: { id: messageId },
+                data: {
+                    deletedForSender: isSender,
+                    deletedForReceiver: !isSender
+                },
+                include: {
+                    sender: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true
+                        }
+                    }
+                }
+            });
+        }
+    },
+
+    users: {
+        findByEmail: async (email: string) => {
+            return prisma.user.findUnique({
+                where: { email }
+            });
+        },
+
+        findById: async (id: string) => {
+            return prisma.user.findUnique({
+                where: { id }
+            });
+        },
+
+        create: async (data: {
+            email: string;
+            password: string;
+            name?: string;
+        }) => {
+            return prisma.user.create({
+                data: {
+                    email: data.email,
+                    password: data.password,
+                    name: data.name || data.email.split('@')[0],
+                }
+            });
+        },
+
+        findAll: async () => {
+            return prisma.user.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
                 }
             });
         }

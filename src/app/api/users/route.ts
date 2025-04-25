@@ -1,23 +1,15 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { requireAuth } from '@/lib/auth';
+import { ApiError } from '@/types/errors';
+import { db } from '@/lib/db';
 
 export async function GET() {
     try {
-        await requireAuth();
-
-        const users = await prisma.user.findMany({
-            select: {
-                id: true,
-                name: true,
-                email: true,
-            }
-        });
-
+        const users = await db.users.findAll();
         return NextResponse.json(users);
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const apiError = error as ApiError;
         return NextResponse.json(
-            { message: error.message },
+            { message: apiError.message },
             { status: 401 }
         );
     }

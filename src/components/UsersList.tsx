@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useChatStore, User } from '@/store/chatStore';
+import { useEffect } from 'react';
+import { useChatStore, type User } from '@/store/chatStore';
 
 interface UsersListProps {
     currentUserId: string;

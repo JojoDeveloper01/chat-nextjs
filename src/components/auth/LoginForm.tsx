@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { ApiError } from '@/types/errors';
 
 export default function LoginForm() {
     const [email, setEmail] = useState('');
@@ -41,8 +42,9 @@ export default function LoginForm() {
 
             // Redirecionar para a página de chat após login bem-sucedido
             router.push('/chat');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (error: unknown) {
+            const err = error as ApiError;
+            setError(err.message || 'Erro ao fazer login');
         } finally {
             setLoading(false);
         }
