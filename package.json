@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "nodemon --exec ts-node --project tsconfig.server.json server.ts",
-    "build1": "next build && tsc --project tsconfig.server.json",
     "clean": "rimraf dist",
     "build": "npm run clean && next build && tsc --project tsconfig.server.json",
     "start": "cross-env NODE_ENV=production node dist/server.js",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",
