@@ -41,7 +41,7 @@ export default function RegisterForm() {
     };
 
     return (
-        <div className="w-full max-w-md mx-auto p-6 rounded-lg shadow-md">
+        <div className="w-full max-w-md mx-auto p-6 rounded-lg shadow-md bg-white">
             <h2 className="text-2xl font-bold mb-6 text-center text-black">Criar Conta</h2>
 
             {error && (

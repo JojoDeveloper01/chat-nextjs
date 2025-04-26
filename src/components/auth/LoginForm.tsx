@@ -15,9 +15,9 @@ export default function LoginForm() {
     const searchParams = useSearchParams();
 
     useEffect(() => {
-        // Verificar se o User acabou de se registrar
+        // Check if the user just registered
         if (searchParams?.get('registered') === 'true') {
-            setSuccess('Registro concluído com sucesso! Faça login para continuar.');
+            setSuccess('Registration completed successfully! Login to continue.');
         }
     }, [searchParams]);
 
@@ -37,21 +37,21 @@ export default function LoginForm() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Erro ao fazer login');
+                throw new Error(data.message || 'Error logging in');
             }
 
-            // Redirecionar para a página de chat após login bem-sucedido
+            // Redirect to chat page after successful login
             router.push('/chat');
         } catch (error: unknown) {
             const err = error as ApiError;
-            setError(err.message || 'Erro ao fazer login');
+            setError(err.message || 'Error logging in');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="w-full max-w-md mx-auto p-6 rounded-lg shadow-md">
+        <div className="w-full max-w-md mx-auto p-6 rounded-lg shadow-md bg-white">
             <h2 className="text-2xl font-bold mb-6 text-center text-black">Login</h2>
 
             {error && (
@@ -83,7 +83,7 @@ export default function LoginForm() {
 
                 <div className="mb-6">
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-                        Senha
+                        Password
                     </label>
                     <input
                         id="password"
@@ -100,15 +100,15 @@ export default function LoginForm() {
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                     disabled={loading}
                 >
-                    {loading ? 'Processando...' : 'Entrar'}
+                    {loading ? 'Processing...' : 'Login'}
                 </button>
             </form>
 
             <div className="mt-4 text-center text-black">
                 <p>
-                    Não tem uma conta?{' '}
+                    Don't have an account?{' '}
                     <Link href="/register" className="text-blue-500 hover:text-blue-600">
-                        Registre-se
+                        Register
                     </Link>
                 </p>
             </div>

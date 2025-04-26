@@ -27,7 +27,7 @@ export const db = {
         },
 
         findById: async (chatId: string) => {
-            // Remove a condição deletedForUser: false para permitir encontrar o chat mesmo que deletado
+            // Remove the condition deletedForUser: false to allow finding the chat even if it was deleted
             return prisma.chat.findUnique({
                 where: {
                     id: chatId
@@ -85,7 +85,7 @@ export const db = {
             });
 
             if (existingChat) {
-                // Se encontrar, reativa o chat para ambos os usuários
+                // If found, reactivate the chat for both users
                 return prisma.chat.update({
                     where: { id: existingChat.id },
                     data: {
@@ -106,7 +106,7 @@ export const db = {
                 });
             }
 
-            // Se não encontrar, cria um novo chat
+            // If not found, create a new chat
             return prisma.chat.create({
                 data: {
                     userId,
@@ -181,7 +181,7 @@ export const db = {
                 throw new Error('Message not found');
             }
 
-            // Se o usuário é o remetente, marca como deletado para ele
+            // If the user is the sender, mark as deleted for the sender
             const isSender = message.senderId === userId;
             return prisma.message.update({
                 where: { id: messageId },

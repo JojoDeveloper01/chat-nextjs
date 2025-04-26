@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { Socket } from 'socket.io-client';
 
-// Tipos
+// Types
 export interface User {
     id: string;
     email: string;
@@ -41,7 +41,7 @@ export interface UserConnection {
 }
 
 interface ChatState {
-    // Estado
+    // State
     user: User | null;
     chats: Chat[];
     activeChat: Chat | null;
@@ -52,7 +52,7 @@ interface ChatState {
     isInitialized?: boolean;
     connectedUsers: Map<string, UserConnection>;
 
-    // Ações
+    // Actions
     setUser: (user: User | null) => void;
     setSocketStore: (socketStore: Socket | null) => void;
     setChats: (chats: Chat[]) => void;
@@ -61,20 +61,20 @@ interface ChatState {
     setLoading: (isLoading: boolean) => void;
     setError: (error: string | null) => void;
 
-    // Operações de chat
+    // Chat operations
     addChat: (chat: Chat) => void;
     removeChat: (chatId: string) => void;
     updateChat: (chat: Chat) => void;
     deleteChat: (chatId: string) => void;
 
-    // Operações de mensagens
+    // Message operations
     addMessage: (message: Message) => void;
     updateMessage: (message: Message) => void;
     markMessageAsDeleted: (messageId: string, isSender: boolean) => void;
     deleteMessage: (messageId: string) => void;
     editMessage: (messageId: string, content: string) => void;
 
-    // Ações de conexão
+    // User connection actions
     setUserConnection: (userId: string, isOnline: boolean) => void;
     removeUserConnection: (userId: string) => void;
 
@@ -82,7 +82,7 @@ interface ChatState {
     reset: () => void;
 }
 
-// Estado inicial
+// Initial state
 const initialState = {
     chats: [],
     activeChat: null,
@@ -93,13 +93,13 @@ const initialState = {
     connectedUsers: new Map<string, UserConnection>(),
 };
 
-// Criar store
+// Create store
 export const useChatStore = create<ChatState>((set) => ({
-    // Estado inicial
+    // Initial state
     user: null,
     ...initialState,
 
-    // Ações
+    // User actions
     setUser: (user) => set({ user, isInitialized: true }),
     setSocketStore: (socketStore) => set({ socketStore }),
     setChats: (chats) => set({ chats }),
@@ -108,7 +108,7 @@ export const useChatStore = create<ChatState>((set) => ({
     setLoading: (isLoading) => set({ isLoading }),
     setError: (error) => set({ error }),
 
-    // Operações de chat
+    // Chat operations
     addChat: (chat) => set((state) => {
         // Check if a chat with same participants already exists
         const existingChat = state.chats.find(c =>
@@ -150,7 +150,7 @@ export const useChatStore = create<ChatState>((set) => ({
             activeChat: state.activeChat?.id === chatId ? null : state.activeChat
         })),
 
-    // Operações de mensagens
+    // Message operations
     addMessage: (message) => set((state) => {
         const updatedChats = state.chats.map((chat) =>
             chat.id === message.chatId
@@ -241,7 +241,7 @@ export const useChatStore = create<ChatState>((set) => ({
             }))
         })),
 
-    // Ações de conexão
+    // User connection actions
     setUserConnection: (userId, isOnline) =>
         set((state) => {
             const newConnectedUsers = new Map(state.connectedUsers);
@@ -261,6 +261,6 @@ export const useChatStore = create<ChatState>((set) => ({
             return { connectedUsers: newConnectedUsers };
         }),
 
-    // Resetar o estado
+    // Reset state
     reset: () => set(() => ({ ...initialState })),
 }));

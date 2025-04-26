@@ -7,7 +7,7 @@ export const useSocket = (url: string) => {
     useEffect(() => {
         if (!socketRef.current) {
             socketRef.current = io(url, {
-                // Configurações para manter conexão
+                // Settings to keep connection
                 reconnection: true,
                 reconnectionAttempts: Infinity,
                 reconnectionDelay: 1000,
@@ -17,11 +17,6 @@ export const useSocket = (url: string) => {
                 transports: ['websocket', 'polling']
             });
         }
-
-        return () => {
-            // Não desconectar ao desmontar componente
-            // socketRef.current?.disconnect();
-        };
     }, [url]);
 
     return socketRef.current;

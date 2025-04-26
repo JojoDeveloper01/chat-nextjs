@@ -19,7 +19,7 @@ export async function GET(
             );
         }
 
-        // Garante que o usuário tem acesso ao chat
+        // Ensure the user has access to the chat
         if (chat.userId !== user.id && chat.receiverId !== user.id) {
             return NextResponse.json(
                 { error: 'Unauthorized' },

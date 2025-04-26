@@ -4,7 +4,7 @@ interface ChatHeaderProps {
         email?: string;
     } | null;
     onDeleteChat: () => void;
-    showDeleteButton?: boolean; // Nova prop
+    showDeleteButton?: boolean;
 }
 
 const ChatHeader: React.FC<ChatHeaderProps> = ({ receiver, onDeleteChat, showDeleteButton = true }) => {

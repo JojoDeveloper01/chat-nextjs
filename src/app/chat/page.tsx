@@ -64,7 +64,7 @@ const ChatPage: React.FC = () => {
     useEffect(() => {
         if (!socket || !user) return;
 
-        // Listener para mensagens recebidas
+        // Listener for received messages
         socket.on('receive_message', async ({ message, chat }) => {
             setOptimisticMessages(prev =>
                 prev.filter(m => m.content !== message.content)
@@ -74,15 +74,15 @@ const ChatPage: React.FC = () => {
                 const chatExists = prev.some(c => c.id === chat.id);
 
                 if (chatExists) {
-                    // Atualiza o chat existente com todas as mensagens do chat atualizado
+                    // Update the existing chat with all messages from the updated chat
                     return prev.map(c => c.id === chat.id ? chat : c);
                 } else {
-                    // Adiciona o novo chat
+                    // Add the new chat
                     return [chat, ...prev];
                 }
             });
 
-            // Se for o chat ativo, atualiza com todas as mensagens
+            // If it's the active chat, update with all messages
             if (activeChat?.id === chat.id) {
                 setActiveChat(chat);
             }
@@ -96,7 +96,7 @@ const ChatPage: React.FC = () => {
     useEffect(() => {
         if (!socket || !user) return;
 
-        // Listener para mensagens atualizadas (editadas)
+        // Listener for updated messages (edited)
         socket.on('message_updated', (updatedMessage) => {
             setLocalChats(prevChats => {
                 const updatedChats = prevChats.map(chat => ({
@@ -118,7 +118,7 @@ const ChatPage: React.FC = () => {
             }
         });
 
-        // Listener para mensagens deletadas
+        // Listener for deleted messages
         socket.on('message_deleted', ({ messageId }) => {
             setLocalChats(prevChats => {
                 const updatedChats = prevChats.map(chat => ({
@@ -202,7 +202,7 @@ const ChatPage: React.FC = () => {
             deletedForReceiver: false
         };
 
-        // Atualiza localmente antes do servidor
+        // Update locally before server
         setLocalChats(prev => {
             return prev.map(chat => {
                 if (chat.id === activeChat.id) {
@@ -268,7 +268,7 @@ const ChatPage: React.FC = () => {
 
     const handleStartChat = async (otherUser: User) => {
         try {
-            // Limpa as mensagens otimistas ao mudar de chat
+            // Clear optimistic messages when changing chat
             setOptimisticMessages([]);
 
             const existingChat = localChats.find(chat =>
@@ -277,7 +277,7 @@ const ChatPage: React.FC = () => {
             );
 
             if (existingChat) {
-                // Encontra o chat mais atualizado em localChats
+                // Find the most updated chat in localChats
                 const updatedChat = localChats.find(c => c.id === existingChat.id);
                 if (updatedChat) {
                     setActiveChat(updatedChat);
@@ -298,7 +298,7 @@ const ChatPage: React.FC = () => {
             const chat = await response.json();
 
             setLocalChats(prevChats => {
-                // Remove chats duplicados antes de adicionar o novo
+                // Remove duplicate chats before adding the new one
                 const uniqueChats = prevChats.filter(c =>
                     !(c.userId === chat.userId && c.receiverId === chat.receiverId) &&
                     !(c.userId === chat.receiverId && c.receiverId === chat.userId)
@@ -366,7 +366,7 @@ const ChatPage: React.FC = () => {
                             ${showUsers ? 'border-b-2 border-primary text-primary' : 'text-text-secondary hover:text-text-primary'}`}
                         onClick={() => setShowUsers(true)}
                     >
-                        Usuários
+                        Users
                     </button>
                 </div>
 

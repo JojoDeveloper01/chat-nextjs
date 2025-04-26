@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 export async function registerUser(email: string, password: string, name?: string) {
     const existingUser = await db.users.findByEmail(email);
     if (existingUser) {
-        throw new Error('User já existe');
+        throw new Error('User already exists');
     }
 
     const hashedPassword = await hash(password, 10);
@@ -26,28 +26,28 @@ export async function registerUser(email: string, password: string, name?: strin
 export async function loginUser(email: string, password: string) {
     const user = await db.users.findByEmail(email);
     if (!user) {
-        throw new Error('Credenciais inválidas');
+        throw new Error('Invalid credentials');
     }
 
-    // Verificar senha
+    // Verify password
     const passwordValid = await compare(password, user.password);
     if (!passwordValid) {
-        throw new Error('Credenciais inválidas');
+        throw new Error('Invalid credentials');
     }
 
-    // Gerar token JWT
+    // Generate JWT token
     const token = sign(
         { userId: user.id, email: user.email },
         JWT_SECRET,
         { expiresIn: '7d' }
     );
 
-    // Salvar token em cookie seguro
+    // Save token in secure cookie
     (await cookies()).set('auth-token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60, // 7 dias
+        maxAge: 7 * 24 * 60 * 60, // 7 days
         path: '/',
     });
 
@@ -74,11 +74,11 @@ export async function getCurrentUser() {
     }
 }
 
-// Middleware para rotas protegidas
+// Middleware for protected routes
 export async function requireAuth() {
     const user = await getCurrentUser();
     if (!user) {
-        throw new Error('Não autorizado');
+        throw new Error('Not authorized');
     }
     return user;
 }

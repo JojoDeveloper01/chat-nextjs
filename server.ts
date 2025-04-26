@@ -12,7 +12,7 @@ const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-// Mapa para armazenar conexões ativas
+// Map to store active connections
 const activeConnections = new Map<string, Set<string>>();
 
 app.prepare().then(() => {
@@ -23,13 +23,13 @@ app.prepare().then(() => {
             methods: ["GET", "POST"],
             credentials: true
         },
-        // Adicionar configurações para manter conexão
+        // Add connection maintenance settings
         pingTimeout: 60000,
         pingInterval: 25000,
         transports: ['websocket', 'polling']
     });
 
-    // Middleware de autenticação
+    // Authentication middleware
     io.use(async (socket, next) => {
         try {
             const cookieHeader = socket.handshake.headers.cookie;
@@ -50,16 +50,16 @@ app.prepare().then(() => {
     io.on('connection', (socket) => {
         const userId = socket.data.userId;
 
-        // Emitir estado de conexão para todos
+        // Emit connection status to all
         io.emit('user_connection', { userId, isOnline: true });
 
-        // Gerenciar conexões ativas
+        // Manage active connections
         if (!activeConnections.has(userId)) {
             activeConnections.set(userId, new Set());
         }
         activeConnections.get(userId)?.add(socket.id);
 
-        // Juntar à sala privada apenas se for primeira conexão
+        // Join private room only if first connection
         if (activeConnections.get(userId)?.size === 1) {
             socket.join(userId);
             console.log('User connected:', userId);
@@ -70,33 +70,33 @@ app.prepare().then(() => {
                 const { content, receiverId } = data;
                 const userId = socket.data.userId;
 
-                // 1. Encontra ou cria o chat (garantindo que seja único)
+                // 1. Find or create chat (ensuring it's unique)
                 const chat = await db.chats.findOrCreate(userId, receiverId);
 
-                // 2. Cria a mensagem
+                // 2. Create message
                 const message = await db.messages.create({
                     content,
                     chatId: chat.id,
                     senderId: userId
                 });
 
-                // 3. Busca o chat atualizado
+                // 3. Find updated chat
                 const updatedChat = await db.chats.findById(chat.id);
 
                 if (!updatedChat) {
                     throw new Error('Failed to fetch updated chat');
                 }
 
-                // 4. Emite o evento com o chat atualizado
+                // 4. Emit event with updated chat
                 const eventData = {
                     message,
                     chat: updatedChat
                 };
 
-                // Emite para o remetente
+                // Emit to sender
                 socket.emit('receive_message', eventData);
 
-                // Emite para o destinatário
+                // Emit to receiver
                 io.to(receiverId).emit('receive_message', eventData);
 
             } catch (error) {
@@ -110,25 +110,25 @@ app.prepare().then(() => {
                 const { messageId, chatId } = data;
                 const userId = socket.data.userId;
 
-                // Busca a mensagem atualizada com o chat
+                // Find updated message with chat
                 const deletedMessage = await db.messages.softDelete(messageId, userId);
 
                 if (!deletedMessage) {
                     throw new Error('Failed to delete message');
                 }
 
-                // Busca o chat para obter o ID do outro participante
+                // Find chat to get the other participant ID
                 const chat = await db.chats.findById(chatId);
                 if (chat) {
                     const receiverId = chat.userId === userId ? chat.receiverId : chat.userId;
 
-                    // Emite para quem deletou
+                    // Emit to the one who deleted
                     socket.emit('message_deleted', {
                         messageId,
                         isSender: deletedMessage.senderId === userId
                     });
 
-                    // Emite para o outro participante (não deleta pra ele)
+                    // Emit to the other participant (don't delete for them)
                     io.to(receiverId).emit('message_deleted', {
                         messageId,
                         isSender: deletedMessage.senderId === receiverId
@@ -147,14 +147,14 @@ app.prepare().then(() => {
                     content
                 });
 
-                // Emitir para o remetente
+                // Emit to the sender
                 socket.emit('message_updated', updatedMessage);
 
-                // Buscar o chat para obter o ID do outro participante
+                // Find the chat to get the other participant ID
                 const chat = await db.chats.findById(chatId);  // Changed from findUnique to findById
                 if (chat) {
                     const receiverId = chat.userId === socket.data.userId ? chat.receiverId : chat.userId;
-                    // Emitir para o destinatário
+                    // Emit to the receiver
                     io.to(receiverId).emit('message_updated', updatedMessage);
                 }
             } catch (error) {
@@ -185,14 +185,14 @@ app.prepare().then(() => {
         });
 
         socket.on('disconnect', () => {
-            // Remover socket ID da lista de conexões do usuário
+            // Remove socket ID from user's connection list
             activeConnections.get(userId)?.delete(socket.id);
 
-            // Se não houver mais conexões, considerar usuário desconectado
+            // If no more connections, consider user disconnected
             if (activeConnections.get(userId)?.size === 0) {
                 activeConnections.delete(userId);
                 console.log('User fully disconnected:', userId);
-                // Emitir estado de desconexão para todos
+                // Emit state of disconnection to all
                 io.emit('user_connection', { userId, isOnline: false });
             }
         });

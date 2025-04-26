@@ -8,7 +8,7 @@ interface ChatListProps {
 }
 
 const ChatList: React.FC<ChatListProps> = ({ chats, activeChat, userId, onChatSelect }) => {
-    // Remove chats duplicados baseado no ID do outro usuário
+    // Remove duplicate chats based on the other user's ID
     const uniqueChats = chats.reduce((acc, current) => {
         const otherUserId = current.userId === userId ? current.receiverId : current.userId;
         const existingChat = acc.find(chat => {
@@ -22,25 +22,25 @@ const ChatList: React.FC<ChatListProps> = ({ chats, activeChat, userId, onChatSe
         return acc;
     }, [] as Chat[]);
 
-    // Filtra chats que têm mensagens válidas E não estão deletados
+    // Filters chats that have valid messages AND are not deleted
     const validChats = uniqueChats.filter(chat => {
         const isDeleted = chat.userId === userId ? chat.deletedForUser : chat.deletedForReceiver;
 
-        // Verifica se há pelo menos uma mensagem não deletada
+        // Checks if there is at least one non-deleted message
         const hasValidMessages = chat.messages.some(message => {
             const isMessageFromUser = message.senderId === userId;
-            // Se a mensagem é do usuário, não mostra se estiver deletada para ele
+            // If the message is from the user, don't show if it's deleted for the user
             if (isMessageFromUser) {
                 return !message.deletedForSender;
             }
-            // Se a mensagem é de outro, não mostra se estiver deletada para o receptor
+            // If the message is from another user, don't show if it's deleted for the receiver
             return !message.deletedForReceiver;
         });
 
         return hasValidMessages && !isDeleted;
     });
 
-    // Ordena por data da última mensagem válida
+    // Sorts by last valid message date
     const sortedChats = [...validChats].sort((a, b) => {
         const getLastValidMessage = (chat: Chat) => {
             return chat.messages
