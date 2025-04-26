@@ -86,5 +86,12 @@ export async function requireAuth() {
 
 export async function logoutUser() {
     const cookieStore = await cookies();
-    cookieStore.delete('auth-token');
+    cookieStore.set('auth-token', '', {
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined,
+        maxAge: 0,
+        expires: new Date(0)
+    });
 }

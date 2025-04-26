@@ -27,7 +27,14 @@ export async function middleware(request: NextRequest) {
         } catch {
             // If token is invalid, remove cookie and continue to public route
             const response = NextResponse.next();
-            response.cookies.delete('token');
+            response.cookies.set('auth-token', '', {
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined,
+                maxAge: 0,
+                expires: new Date(0)
+            });
             return response;
         }
     }
