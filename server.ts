@@ -19,11 +19,10 @@ app.prepare().then(() => {
     const server = createServer(handle);
     const io = new Server(server, {
         cors: {
-            origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+            origin: "*",  // Permite conexões de qualquer origem
             methods: ["GET", "POST"],
-            credentials: true
+            credentials: false  // Desabilitado pois não é compatível com origin: "*"
         },
-        // Add connection maintenance settings
         pingTimeout: 60000,
         pingInterval: 25000,
         transports: ['websocket', 'polling']
