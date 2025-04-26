@@ -21,7 +21,7 @@ const ChatPage: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const socketUrl = typeof window !== 'undefined' ? 
-        (process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin) : 
+        (process.env.NEXT_PUBLIC_RAILWAY_STATIC_URL || window.location.origin) : 
         'http://localhost:3000';
     const socket = useSocket(socketUrl);
     const { user, setUserConnection } = useChatStore();

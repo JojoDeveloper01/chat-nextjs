@@ -6,9 +6,12 @@ export const useSocket = (url: string) => {
 
     useEffect(() => {
         if (!socketRef.current) {
-            // Se estivermos no Railway, use a URL do Railway
-            const socketUrl = process.env.NEXT_PUBLIC_RAILWAY_STATIC_URL || url || 
+            // Garante que a URL base está correta
+            let socketUrl = process.env.NEXT_PUBLIC_RAILWAY_STATIC_URL || url || 
                 (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+            
+            // Remove qualquer path adicional da URL (como /chat)
+            socketUrl = socketUrl.split('/').slice(0, 3).join('/');
             socketRef.current = io(socketUrl, {
                 reconnection: true,
                 reconnectionAttempts: Infinity,
