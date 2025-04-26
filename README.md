@@ -2,6 +2,8 @@
 
 A modern, real-time chat application built with Next.js 15.3, Socket.IO, and Prisma. Features include user authentication, real-time messaging, and a responsive UI.
 
+![image](https://github.com/user-attachments/assets/281513d5-6d20-4169-80cc-cd46abd5fa0a)
+
 ## Features
 
 - User authentication (Register/Login)
