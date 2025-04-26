@@ -14,13 +14,13 @@ const ChatPage: React.FC = () => {
     const [editingMessage, setEditingMessage] = useState<string | null>(null);
     const [editText, setEditText] = useState('');
     const [showUsers, setShowUsers] = useState(false);
-    const [localChats, setLocalChats] = useState<Chat[]>([]);
+    const [localChats, setLocalChats] = useState<Chat[]>([]);   
     const [activeChat, setActiveChat] = useState<Chat | null>(null);
     const [optimisticMessages, setOptimisticMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const socket = useSocket(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000');
+    const socket = useSocket(process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin);
     const { user, setUserConnection } = useChatStore();
 
     useEffect(() => {

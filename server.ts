@@ -6,8 +6,8 @@ import { verify } from 'jsonwebtoken';
 import { db } from './src/lib/db';
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = 'localhost';
-const port = 3000;
+const hostname = process.env.HOST || 'localhost';
+const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
@@ -19,7 +19,7 @@ app.prepare().then(() => {
     const server = createServer(handle);
     const io = new Server(server, {
         cors: {
-            origin: "http://localhost:3000",
+            origin: process.env.CORS_ORIGIN || "http://localhost:3000",
             methods: ["GET", "POST"],
             credentials: true
         },
@@ -199,6 +199,6 @@ app.prepare().then(() => {
     });
 
     server.listen(port, () => {
-        console.log(`Server running at http://localhost:${port}`);
+        console.log(`Server running at http://${hostname}:${port}`);
     });
 });
