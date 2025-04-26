@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import Link from 'next/link';
 import { useChatStore } from '@/store/chatStore';
 
@@ -8,11 +8,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 text-center text-white">
-      <h1 className="text-4xl font-bold mb-6">Bem-vindo ao Pixl Chat</h1>
-      <p className="text-xl mb-8">Um sistema de chat simples e eficiente</p>
+      <h1 className="text-4xl font-bold mb-6">Welcome to NextJS Chat</h1>
+      <p className="text-xl mb-8">A simple and efficient chat system</p>
 
       {isLoading ? (
-        <p className="text-gray-400">A verificar sessão...</p>
+        <p className="text-gray-400">Checking session...</p>
       ) : (
         <div className="flex gap-4">
           {user ? (
@@ -20,7 +20,7 @@ export default function HomePage() {
               href="/chat"
               className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded"
             >
-              Ir para o Chat
+              Go to Chat
             </Link>
           ) : (
             <>
@@ -34,7 +34,7 @@ export default function HomePage() {
                 href="/register"
                 className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded"
               >
-                Registrar
+                Register
               </Link>
             </>
           )}

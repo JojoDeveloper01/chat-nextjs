@@ -1,11 +1,11 @@
 {
-  "name": "pixl-chat1",
+  "name": "chat-nextjs",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "nodemon --exec ts-node --project tsconfig.server.json server.ts",
     "clean": "rimraf dist",
-    "build": "npm run clean && next build && tsc --project tsconfig.server.json",
+    "build": "next build && tsc --project tsconfig.server.json",
     "start": "cross-env NODE_ENV=production node dist/server.js",
     "lint": "next lint",
     "postinstall": "prisma generate"
