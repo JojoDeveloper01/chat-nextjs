@@ -19,9 +19,9 @@ app.prepare().then(() => {
     const server = createServer(handle);
     const io = new Server(server, {
         cors: {
-            origin: "*",  // Allows connections from any origin
+            origin: true, // Allow verified origins
             methods: ["GET", "POST"],
-            credentials: false  // Disabled because it's not compatible with origin: "*"
+            credentials: true // Enable credentials
         },
         pingTimeout: 60000,
         pingInterval: 25000,

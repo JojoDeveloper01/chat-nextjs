@@ -6,11 +6,15 @@ export async function middleware(request: NextRequest) {
     const token = request.cookies.get('auth-token')?.value;
 
     // Public routes that don't require authentication
-    const publicRoutes = ['/login', '/register'];
+    const publicRoutes = ['/', '/login', '/register'];
     const isPublicRoute = publicRoutes.includes(request.nextUrl.pathname);
 
-    // If no token and route is not public, redirect to login
-    if (!token && !isPublicRoute) {
+    // Protected routes that require authentication
+    const protectedRoutes = ['/chat'];
+    const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+
+    // If no token and trying to access protected route, redirect to login
+    if (!token && isProtectedRoute) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
 

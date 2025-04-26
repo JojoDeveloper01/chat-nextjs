@@ -24,7 +24,7 @@ export const useSocket = (url: string) => {
             // Remove any additional path from the URL (like /chat)
             socketUrl = socketUrl.split('/').slice(0, 3).join('/');
             
-            console.log('Conectando ao socket:', socketUrl);
+            console.log('Connecting to socket:', socketUrl);
             
             socketRef.current = io(socketUrl, {
                 reconnection: true,
@@ -34,7 +34,7 @@ export const useSocket = (url: string) => {
                 timeout: 20000,
                 autoConnect: true,
                 transports: ['websocket', 'polling'],
-                withCredentials: false
+                withCredentials: true
             });
 
             socketRef.current.on('connect_error', (error) => {

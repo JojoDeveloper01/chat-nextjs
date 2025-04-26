@@ -46,9 +46,10 @@ export async function loginUser(email: string, password: string) {
     (await cookies()).set('auth-token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax', // Changed from strict to lax for better compatibility
         maxAge: 7 * 24 * 60 * 60, // 7 days
         path: '/',
+        domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined // Add domain for production
     });
 
     // Use object destructuring without creating unused variables
