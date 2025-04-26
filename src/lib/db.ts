@@ -159,7 +159,10 @@ export const db = {
         }) => {
             return prisma.message.update({
                 where: { id: messageId },
-                data: { content },
+                data: { 
+                    content,
+                    isEdited: true
+                },
                 include: {
                     sender: {
                         select: {

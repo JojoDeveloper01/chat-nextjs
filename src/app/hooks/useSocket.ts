@@ -5,13 +5,27 @@ export const useSocket = (url: string) => {
     const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => {
-        if (!socketRef.current) {
-            // Garante que a URL base está correta
-            let socketUrl = process.env.NEXT_PUBLIC_RAILWAY_STATIC_URL || url || 
+        const setupSocket = () => {
+            if (socketRef.current?.connected) {
+                console.log('Socket is already connected');
+                return;
+            }
+
+            // Disconnect existing socket if it exists
+            if (socketRef.current) {
+                console.log('Desconectando socket existente...');
+                socketRef.current.disconnect();
+            }
+
+            // Ensures the base URL is correct
+            let socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || url || 
                 (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
             
-            // Remove qualquer path adicional da URL (como /chat)
+            // Remove any additional path from the URL (like /chat)
             socketUrl = socketUrl.split('/').slice(0, 3).join('/');
+            
+            console.log('Conectando ao socket:', socketUrl);
+            
             socketRef.current = io(socketUrl, {
                 reconnection: true,
                 reconnectionAttempts: Infinity,
@@ -22,7 +36,20 @@ export const useSocket = (url: string) => {
                 transports: ['websocket', 'polling'],
                 withCredentials: false
             });
-        }
+
+            socketRef.current.on('connect_error', (error) => {
+                console.error('Socket connection error:', error);
+            });
+        };
+
+        setupSocket();
+
+        return () => {
+            if (socketRef.current) {
+                console.log('Clearing socket connection...');
+                socketRef.current.disconnect();
+            }
+        };
     }, [url]);
 
     return socketRef.current;

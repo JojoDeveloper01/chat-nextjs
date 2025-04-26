@@ -27,7 +27,7 @@ body {
   color: var(--text-primary);
 }
 
-/* Customizações específicas */
+/* Specific customizations */
 .chat-input {
   background: var(--secondary);
   border-color: var(--border);
@@ -57,7 +57,7 @@ body {
   border-left: 3px solid var(--primary);
 }
 
-/* Scrollbar customização */
+/* Scrollbar customization */
 ::-webkit-scrollbar {
   width: 8px;
 }

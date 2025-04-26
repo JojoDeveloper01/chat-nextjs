@@ -5,6 +5,16 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ApiError } from '@/types/errors';
 
+/**
+ * LoginForm Component
+ * 
+ * A form component that handles user authentication. Features include:
+ * - Email and password validation
+ * - Error handling and display
+ * - Success messages for registration completion
+ * - Loading states for better UX
+ * - Automatic redirection after login
+ */
 export default function LoginForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -41,7 +51,9 @@ export default function LoginForm() {
             }
 
             // Redirect to chat page after successful login
-            router.push('/chat');
+            router.replace('/chat');
+            // Force a page reload to ensure everything is reset
+            window.location.reload();
         } catch (error: unknown) {
             const err = error as ApiError;
             setError(err.message || 'Error logging in');

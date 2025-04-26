@@ -8,6 +8,7 @@ import ChatList from '@/components/ChatList';
 import ChatHeader from '@/components/ChatHeader';
 import MessageArea from '@/components/MessageArea';
 import MessageInput from '@/components/MessageInput';
+import { UserProfile } from '@/components/UserProfile';
 
 const ChatPage: React.FC = () => {
     const [input, setInput] = useState('');
@@ -21,10 +22,39 @@ const ChatPage: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const socketUrl = typeof window !== 'undefined' ? 
-        (process.env.NEXT_PUBLIC_RAILWAY_STATIC_URL || window.location.origin) : 
+        (process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin) : 
         'http://localhost:3000';
     const socket = useSocket(socketUrl);
-    const { user, setUserConnection } = useChatStore();
+    const [isSocketConnected, setIsSocketConnected] = useState(false);
+    const { user, setUserConnection, setUser } = useChatStore();
+
+    // Monitor the socket connection state
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleConnect = () => {
+            console.log('Socket connected!');
+            setIsSocketConnected(true);
+        };
+
+        const handleDisconnect = () => {
+            console.log('Socket disconnected!');
+            setIsSocketConnected(false);
+        };
+
+        socket.on('connect', handleConnect);
+        socket.on('disconnect', handleDisconnect);
+
+        // If already connected
+        if (socket.connected) {
+            setIsSocketConnected(true);
+        }
+
+        return () => {
+            socket.off('connect', handleConnect);
+            socket.off('disconnect', handleDisconnect);
+        };
+    }, [socket]);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -45,6 +75,33 @@ const ChatPage: React.FC = () => {
 
         checkAuth();
     }, []);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const response = await fetch('/api/auth/me');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user');
+                }
+                
+                const userData = await response.json();
+                setUser(userData);
+                // Now that we have the user, we can start the socket
+                if (socket) {
+                    socket.connect();
+                }
+            } catch (error) {
+                console.error('Error fetching user:', error);
+                // If there is an error fetching the user, redirect to login
+                window.location.href = '/login';
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchUser();
+
+    }, [setUser, socket]);
 
     useEffect(() => {
         const fetchChats = async () => {
@@ -250,7 +307,25 @@ const ChatPage: React.FC = () => {
             socket.emit('edit_message', {
                 messageId,
                 chatId: activeChat?.id,
-                content: editText
+                content: editText,
+                isEdited: true
+            });
+
+            // Update local state optimistically
+            setLocalChats(prevChats => {
+                return prevChats.map(chat => {
+                    if (chat.id === activeChat?.id) {
+                        return {
+                            ...chat,
+                            messages: chat.messages.map(msg =>
+                                msg.id === messageId
+                                    ? { ...msg, content: editText, isEdited: true }
+                                    : msg
+                            )
+                        };
+                    }
+                    return chat;
+                });
             });
         }
         setEditingMessage(null);
@@ -267,6 +342,25 @@ const ChatPage: React.FC = () => {
             prevChats.filter(chat => chat.id !== activeChat.id)
         );
         setActiveChat(null);
+    };
+
+    const handleLogout = async () => {
+        try {
+            const response = await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+                // Desconecta o socket antes de redirecionar
+                if (socket) {
+                    socket.disconnect();
+                }
+                window.location.href = '/login';
+            }
+        } catch (error) {
+            console.error('Erro ao fazer logout:', error);
+        }
     };
 
     const handleStartChat = async (otherUser: User) => {
@@ -343,10 +437,14 @@ const ChatPage: React.FC = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [allMessages]);
 
-    if (isLoading) {
+    // Show loading screen while loading or waiting for socket connection
+    if (isLoading || !isSocketConnected) {
         return (
-            <div className="flex items-center justify-center h-screen ">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent"></div>
+            <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">{isLoading ? 'Loading...' : 'Connecting to chat...'}</p>
+                </div>
             </div>
         );
     }
@@ -388,21 +486,7 @@ const ChatPage: React.FC = () => {
                     />
                 )}
 
-                <div className="absolute bottom-0 w-1/4 border-t border-r border-border p-4 bg-[#141a27]">
-                    <div className="flex items-center">
-                        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-medium">
-                            {user?.name?.[0] || user?.email?.[0]}
-                        </div>
-                        <div className="ml-3 overflow-hidden">
-                            <p className="font-medium truncate text-text-primary">
-                                {user?.name || 'User'}
-                            </p>
-                            <p className="text-sm truncate text-text-secondary">
-                                {user?.email || ''}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                <UserProfile handleLogout={handleLogout} user={user} />
             </aside>
 
             {/* Main Content */}

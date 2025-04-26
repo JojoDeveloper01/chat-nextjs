@@ -1,33 +1,70 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useChatStore, type User } from '@/store/chatStore';
 
+/**
+ * Props for the UsersList component
+ */
 interface UsersListProps {
+    /** ID of the current logged-in user */
     currentUserId: string;
+    /** Callback function when a chat is started with another user */
     onStartChat: (otherUser: User) => void;
 }
 
+/**
+ * UsersList Component
+ * 
+ * Displays a list of all users except the current user.
+ * Features include:
+ * - Real-time user list updates
+ * - Loading states
+ * - Empty state handling
+ * - User avatars with initials
+ * - Click to start chat functionality
+ */
 const UsersList: React.FC<UsersListProps> = ({ currentUserId, onStartChat }) => {
     const { users: globalUsers, setUsers } = useChatStore();
+    const [isLoading, setIsLoading] = useState(true);
 
+    /**
+     * Fetches the list of users from the API
+     * Filters out the current user and updates the global store
+     */
     useEffect(() => {
         const fetchUsers = async () => {
-            // If we already have users in the global store, don't fetch again
-            if (globalUsers.length > 0) {
-                return;
-            }
-
+            setIsLoading(true);
             try {
                 const response = await fetch('/api/users');
+                if (!response.ok) throw new Error('Failed to load users');
                 const data = await response.json();
-                // Update global store
-                setUsers(data);
+                // Filter out current user before updating the store
+                const filteredData = data.filter((user: User) => user.id !== currentUserId);
+                setUsers(filteredData);
             } catch (error) {
                 console.error('Error fetching users:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
         fetchUsers();
     }, [currentUserId, globalUsers.length, setUsers]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
+
+    if (globalUsers.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-full text-gray-500">
+                <p>No users available</p>
+            </div>
+        );
+    }
 
     // Filter out current user from the list
     const filteredUsers = globalUsers.filter(u => u.id !== currentUserId);

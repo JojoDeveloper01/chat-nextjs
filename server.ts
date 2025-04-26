@@ -7,7 +7,7 @@ import { db } from './src/lib/db';
 
 const dev = process.env.NODE_ENV !== 'production';
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-const hostname = '0.0.0.0';  // Necessário para o Railway
+const hostname = process.env.HOST || 'localhost';  // Needed for Railway
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
@@ -19,9 +19,9 @@ app.prepare().then(() => {
     const server = createServer(handle);
     const io = new Server(server, {
         cors: {
-            origin: "*",  // Permite conexões de qualquer origem
+            origin: "*",  // Allows connections from any origin
             methods: ["GET", "POST"],
-            credentials: false  // Desabilitado pois não é compatível com origin: "*"
+            credentials: false  // Disabled because it's not compatible with origin: "*"
         },
         pingTimeout: 60000,
         pingInterval: 25000,

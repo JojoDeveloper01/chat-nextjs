@@ -8,20 +8,20 @@ export async function POST(request: Request) {
 
         if (!email || !password) {
             return NextResponse.json(
-                { message: 'Email e senha são obrigatórios' },
+                { message: 'Email and password are required' },
                 { status: 400 }
             );
         }
 
         const user = await registerUser(email, password, name);
         return NextResponse.json(
-            { message: 'User registrado com sucesso', user },
+            { message: 'User registered successfully', user },
             { status: 201 }
         );
     } catch (error: unknown) {
         const apiError = error as ApiError;
         return NextResponse.json(
-            { message: apiError.message || 'Erro ao registrar User' },
+            { message: apiError.message || 'Failed to register User' },
             { status: 400 }
         );
     }

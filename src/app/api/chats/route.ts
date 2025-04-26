@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         const user = await requireAuth();
         const { receiverId } = await request.json();
 
-        // Usa a função findOrCreate do db.ts
+        // Use the function findOrCreate from db.ts
         const chat = await db.chats.findOrCreate(user.id, receiverId);
         return NextResponse.json(chat);
 
