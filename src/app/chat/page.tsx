@@ -20,7 +20,10 @@ const ChatPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const socket = useSocket(process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin);
+    const socketUrl = typeof window !== 'undefined' ? 
+        (process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin) : 
+        'http://localhost:3000';
+    const socket = useSocket(socketUrl);
     const { user, setUserConnection } = useChatStore();
 
     useEffect(() => {

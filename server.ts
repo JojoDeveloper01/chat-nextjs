@@ -6,8 +6,8 @@ import { verify } from 'jsonwebtoken';
 import { db } from './src/lib/db';
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = process.env.HOST || 'localhost';
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+const hostname = '0.0.0.0';  // Necessário para o Railway
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
