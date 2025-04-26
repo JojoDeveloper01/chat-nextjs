@@ -24,7 +24,7 @@ npm install
 3. **Environment Setup**
 Create a `.env` file in the root directory with:
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
+DATABASE_URL="postgresql://username:password@localhost:3000/database_name"
 JWT_SECRET="your-jwt-secret"
 ```
 

@@ -7,7 +7,7 @@ import { db } from './src/lib/db';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
-const port = 5432;
+const port = 3000;
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
@@ -19,7 +19,7 @@ app.prepare().then(() => {
     const server = createServer(handle);
     const io = new Server(server, {
         cors: {
-            origin: "http://localhost:5432",
+            origin: "http://localhost:3000",
             methods: ["GET", "POST"],
             credentials: true
         },
