@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
                 path: '/',
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
-                domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined,
+                domain: process.env.COOKIE_DOMAIN || undefined,
                 maxAge: 0,
                 expires: new Date(0)
             });

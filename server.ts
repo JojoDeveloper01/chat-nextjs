@@ -9,6 +9,14 @@ const dev = process.env.NODE_ENV !== 'production';
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 const hostname = process.env.HOST || 'localhost';  // Needed for Railway
 
+function getJwtSecret() {
+    const secret = process.env.JWT_SECRET;
+    if (!secret || secret.length < 32) {
+        throw new Error('JWT_SECRET must be set to a strong value with at least 32 characters');
+    }
+    return secret;
+}
+
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
@@ -38,7 +46,7 @@ app.prepare().then(() => {
             const token = cookies['auth-token'];
             if (!token) return next(new Error('Authentication required'));
 
-            const decoded = verify(token, process.env.JWT_SECRET || 'secret') as { userId: string };
+            const decoded = verify(token, getJwtSecret()) as { userId: string };
             socket.data.userId = decoded.userId;
             next();
         } catch (error) {

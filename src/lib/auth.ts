@@ -3,7 +3,22 @@ import { sign, verify } from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { db } from './db';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+function getJwtSecret() {
+    const secret = process.env.JWT_SECRET;
+    if (!secret || secret.length < 32) {
+        throw new Error('JWT_SECRET must be set to a strong value with at least 32 characters');
+    }
+    return secret;
+}
+
+function getCookieDomain() {
+    return process.env.COOKIE_DOMAIN || undefined;
+}
+
+function withoutPassword<T extends { password?: string }>(user: T) {
+    const { password: _password, ...safeUser } = user;
+    return safeUser;
+}
 
 export async function registerUser(email: string, password: string, name?: string) {
     const existingUser = await db.users.findByEmail(email);
@@ -18,9 +33,7 @@ export async function registerUser(email: string, password: string, name?: strin
         name
     });
 
-    // Use object destructuring without creating unused variables
-    const { ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return withoutPassword(user);
 }
 
 export async function loginUser(email: string, password: string) {
@@ -38,7 +51,7 @@ export async function loginUser(email: string, password: string) {
     // Generate JWT token
     const token = sign(
         { userId: user.id, email: user.email },
-        JWT_SECRET,
+        getJwtSecret(),
         { expiresIn: '7d' }
     );
 
@@ -49,12 +62,10 @@ export async function loginUser(email: string, password: string) {
         sameSite: 'lax', // Changed from strict to lax for better compatibility
         maxAge: 7 * 24 * 60 * 60, // 7 days
         path: '/',
-        domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined // Add domain for production
+        domain: getCookieDomain()
     });
 
-    // Use object destructuring without creating unused variables
-    const { ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return withoutPassword(user);
 }
 
 export async function getCurrentUser() {
@@ -62,14 +73,12 @@ export async function getCurrentUser() {
         const token = (await cookies()).get('auth-token')?.value;
         if (!token) return null;
 
-        const decoded = verify(token, JWT_SECRET) as { userId: string };
+        const decoded = verify(token, getJwtSecret()) as { userId: string };
         const user = await db.users.findById(decoded.userId);
 
         if (!user) return null;
 
-        // Use object destructuring without creating unused variables
-        const { ...userWithoutPassword } = user;
-        return userWithoutPassword;
+        return withoutPassword(user);
     } catch {
         return null;
     }
@@ -90,7 +99,7 @@ export async function logoutUser() {
         path: '/',
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined,
+        domain: getCookieDomain(),
         maxAge: 0,
         expires: new Date(0)
     });
