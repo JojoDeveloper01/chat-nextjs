@@ -44,11 +44,28 @@ jobs:
       - name: Verify local health
         run: |
           set -euo pipefail
-          curl -fsS --max-time 20 http://127.0.0.1:3100/ >/dev/null
-          status=$(curl -sS -o /tmp/chat-nextjs-users-check.txt -w '%{http_code}' --max-time 20 http://127.0.0.1:3100/api/users)
-          test "$status" = "401"
+          for i in {1..30}; do
+            if curl -fsS --max-time 10 http://127.0.0.1:3100/ >/dev/null; then
+              status=$(curl -sS -o /tmp/chat-nextjs-users-check.txt -w '%{http_code}' --max-time 10 http://127.0.0.1:3100/api/users || true)
+              if [ "$status" = "401" ]; then
+                exit 0
+              fi
+            fi
+            sleep 2
+          done
+          echo "chat-nextjs local health check failed" >&2
+          sudo docker compose -f /opt/empire/apps/chat-nextjs/app/docker-compose.yml ps >&2 || true
+          sudo docker logs --tail=120 app-app-1 >&2 || true
+          exit 1
 
       - name: Verify public health
         run: |
           set -euo pipefail
-          curl -fsS --max-time 30 https://chatnextjs.josethbalcazar.com/ >/dev/null
+          for i in {1..15}; do
+            if curl -fsS --max-time 15 https://chatnextjs.josethbalcazar.com/ >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "chat-nextjs public health check failed" >&2
+          exit 1
