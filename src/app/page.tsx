@@ -11,6 +11,13 @@ export default function HomePage() {
       <h1 className="text-4xl font-bold mb-6">Welcome to NextJS Chat</h1>
       <p className="text-xl mb-8">A simple and efficient chat system</p>
 
+      <a
+        href="https://josethbalcazar.com/"
+        className="mb-8 inline-flex items-center rounded-full border border-white/20 px-4 py-2 text-sm text-gray-200 transition hover:border-white/40 hover:bg-white/10 hover:text-white"
+      >
+        ← Main portfolio
+      </a>
+
       {isLoading ? (
         <p className="text-gray-400">Checking session...</p>
       ) : (
