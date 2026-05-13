@@ -1,0 +1,54 @@
+name: Deploy production to Bunker
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: chat-nextjs-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - chat-nextjs-prod
+      - bunker
+      - arm64
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync repository to production path
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude '.next' \
+            --exclude '.env' \
+            --exclude 'backups' \
+            ./ /opt/empire/apps/chat-nextjs/app/
+
+      - name: Deploy with Docker Compose
+        working-directory: /opt/empire/apps/chat-nextjs/app
+        env:
+          DOCKER_CMD: sudo docker
+        run: |
+          set -euo pipefail
+          ./scripts/deploy-local.sh
+
+      - name: Verify local health
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 20 http://127.0.0.1:3100/ >/dev/null
+          status=$(curl -sS -o /tmp/chat-nextjs-users-check.txt -w '%{http_code}' --max-time 20 http://127.0.0.1:3100/api/users)
+          test "$status" = "401"
+
+      - name: Verify public health
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 30 https://chatnextjs.josethbalcazar.com/ >/dev/null
